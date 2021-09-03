@@ -18,12 +18,14 @@ package com.example.exoplayer
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.exoplayer.databinding.ActivityPlayerBinding
+import com.google.android.exoplayer2.SimpleExoPlayer
 
 /**
  * A fullscreen activity to play audio or video streams.
  */
 class PlayerActivity : AppCompatActivity() {
 
+    private var player: SimpleExoPlayer? = null
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityPlayerBinding.inflate(layoutInflater)
     }
@@ -31,5 +33,13 @@ class PlayerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
+    }
+
+    private fun initializePlayer() {
+        player = SimpleExoPlayer.Builder(this)
+            .build()
+            .also { exoPlayer ->
+                viewBinding.videoView.player = exoPlayer
+            }
     }
 }
