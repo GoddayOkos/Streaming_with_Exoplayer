@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.exoplayer.databinding.ActivityPlayerBinding
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.util.Util
 
 /**
@@ -108,13 +109,27 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun initializePlayer() {
+        /**
+         *  Create a DefaultTrackSelector, which is responsible for choosing tracks in the media item.
+         *  Then, tell your trackSelector to only pick tracks of standard definition or lower this
+         *  is a good way of saving your user's data at the expense of quality.
+         */
+        val trackSelector = DefaultTrackSelector(this).apply {
+            setParameters(buildUponParameters().setMaxVideoSizeSd())
+        }
         player = SimpleExoPlayer.Builder(this)
+            /**
+             * pass your trackSelector to your builder so that it is used when building
+             * the SimpleExoPlayer instance.
+             */
+            .setTrackSelector(trackSelector)
             .build()
             .also { exoPlayer ->
                 viewBinding.videoView.player = exoPlayer
                 // Add media item(mp4) from remote source to the player
                 val mediaItem = MediaItem.fromUri(getString(R.string.media_url_mp4))
                 exoPlayer.setMediaItem(mediaItem)
+                // Add another media item to the player, thereby creating a playlist with two items.
                 val secondMediaItem = MediaItem.fromUri(getString(R.string.media_url_mp3))
                 exoPlayer.addMediaItem(secondMediaItem)
 
