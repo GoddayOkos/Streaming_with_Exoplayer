@@ -112,9 +112,11 @@ class PlayerActivity : AppCompatActivity() {
             .build()
             .also { exoPlayer ->
                 viewBinding.videoView.player = exoPlayer
-                // Add media item(mp3) from remote source to the player
-                val mediaItem = MediaItem.fromUri(getString(R.string.media_url_mp3))
+                // Add media item(mp4) from remote source to the player
+                val mediaItem = MediaItem.fromUri(getString(R.string.media_url_mp4))
                 exoPlayer.setMediaItem(mediaItem)
+                val secondMediaItem = MediaItem.fromUri(getString(R.string.media_url_mp3))
+                exoPlayer.addMediaItem(secondMediaItem)
 
                 /**
                  * *   Supply the states to begin from where the user stopped
