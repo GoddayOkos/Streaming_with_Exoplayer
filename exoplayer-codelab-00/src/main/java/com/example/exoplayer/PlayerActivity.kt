@@ -30,6 +30,10 @@ import com.google.android.exoplayer2.util.Util
 class PlayerActivity : AppCompatActivity() {
 
     private var player: SimpleExoPlayer? = null
+    private var playWhenReady = true
+    private var currentWindow = 0
+    private var playbackPosition = 0L
+
     private val viewBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityPlayerBinding.inflate(layoutInflater)
     }
@@ -74,6 +78,29 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     /**
+     * With API Level 24 and lower, there is no guarantee of onStop being called, so you have
+     * to release the player as early as possible in onPause
+     */
+    override fun onPause() {
+        super.onPause()
+        if (Util.SDK_INT < 24) {
+            releasePlayer()
+        }
+    }
+
+    /**
+     * With API Level 24 and higher (which brought multi- and split-window mode),
+     * onStop is guaranteed to be called. In the paused state, your activity is still visible,
+     * so you wait to release the player until onStop.
+     */
+    override fun onStop() {
+        super.onStop()
+        if (Util.SDK_INT >= 24) {
+            releasePlayer()
+        }
+    }
+
+    /**
      * Method for enabling full screen
      */
     @SuppressLint("InlinedApi")
@@ -84,5 +111,18 @@ class PlayerActivity : AppCompatActivity() {
                 or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
+    }
+
+    private fun releasePlayer() {
+        player?.run {
+            // Current playback position using currentPosition
+            playbackPosition = this.currentPosition
+            // Current window index using currentWindowIndex
+            currentWindow = this.currentWindowIndex
+            // Play/pause state using playWhenReady
+            playWhenReady = this.playWhenReady
+            release()   // Release the player when it's no longer needed.
+        }
+        player = null
     }
 }
