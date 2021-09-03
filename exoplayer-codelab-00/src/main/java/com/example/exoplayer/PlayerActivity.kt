@@ -23,6 +23,7 @@ import com.example.exoplayer.databinding.ActivityPlayerBinding
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.exoplayer2.util.Util
 
 /**
@@ -126,12 +127,17 @@ class PlayerActivity : AppCompatActivity() {
             .build()
             .also { exoPlayer ->
                 viewBinding.videoView.player = exoPlayer
-                // Add media item(mp4) from remote source to the player
-                val mediaItem = MediaItem.fromUri(getString(R.string.media_url_mp4))
+
+                // Build an adaptive media item using dash and MIME
+                val mediaItem = MediaItem.Builder()
+                    .setUri(getString(R.string.media_url_dash))
+                    .setMimeType(MimeTypes.APPLICATION_MPD)
+                    .build()
+
                 exoPlayer.setMediaItem(mediaItem)
                 // Add another media item to the player, thereby creating a playlist with two items.
-                val secondMediaItem = MediaItem.fromUri(getString(R.string.media_url_mp3))
-                exoPlayer.addMediaItem(secondMediaItem)
+//                val secondMediaItem = MediaItem.fromUri(getString(R.string.media_url_mp3))
+//                exoPlayer.addMediaItem(secondMediaItem)
 
                 /**
                  * *   Supply the states to begin from where the user stopped
