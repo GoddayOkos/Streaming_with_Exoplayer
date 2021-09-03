@@ -16,15 +16,22 @@
 package com.example.exoplayer
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.exoplayer.databinding.ActivityPlayerBinding
+import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.exoplayer2.util.Util
+
+private const val TAG = "PlayerActivity"
 
 /**
  * A fullscreen activity to play audio or video streams.
@@ -32,6 +39,7 @@ import com.google.android.exoplayer2.util.Util
 class PlayerActivity : AppCompatActivity() {
 
     private var player: SimpleExoPlayer? = null
+    private lateinit var playbackStateListener: Player.EventListener
 
     /**
      * These states(fields) allows you to resume playback from where the user left off.
@@ -48,6 +56,7 @@ class PlayerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
+        playbackStateListener = playbackStateListener(this)
     }
 
     /**
@@ -154,6 +163,7 @@ class PlayerActivity : AppCompatActivity() {
                  */
                 exoPlayer.playWhenReady = playWhenReady
                 exoPlayer.seekTo(currentWindow, playbackPosition)
+                exoPlayer.addListener(playbackStateListener) // Register the listener
                 exoPlayer.prepare()
             }
     }
@@ -166,8 +176,28 @@ class PlayerActivity : AppCompatActivity() {
             currentWindow = this.currentWindowIndex
             // Play/pause state using playWhenReady
             this@PlayerActivity.playWhenReady = this.playWhenReady
+            removeListener(playbackStateListener) // detach the listener
             release()   // Release the player when it's no longer needed.
         }
         player = null
+    }
+}
+
+/**
+ * PlaybackStateListener is used to listen to and respond to state changes of the exoPlayer.
+ */
+private fun playbackStateListener(context: Context) = object : Player.EventListener {
+    override fun onPlaybackStateChanged(state: Int) {
+        val stateString: String = when (state) {
+            ExoPlayer.STATE_IDLE -> "ExoPlayer.STATE_IDLE              _"
+            ExoPlayer.STATE_BUFFERING -> "ExoPlayer.STATE_BUFFERING -"
+            ExoPlayer.STATE_READY -> "ExoPlayer.STATE_READY     -"
+            ExoPlayer.STATE_ENDED -> "ExoPlayer.STATE_ENDED     -"
+            else -> "UNKNOWN_STATE             -"
+        }
+        if (state == ExoPlayer.STATE_BUFFERING) {
+            Toast.makeText(context, "Loading...", Toast.LENGTH_LONG).show()
+        }
+        Log.d(TAG, "change state to $stateString")
     }
 }
