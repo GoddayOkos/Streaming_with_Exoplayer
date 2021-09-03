@@ -15,11 +15,14 @@
  */
 package com.example.exoplayer
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.example.exoplayer.databinding.ActivityPlayerBinding
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.util.Util
 
 /**
  * A fullscreen activity to play audio or video streams.
@@ -45,5 +48,41 @@ class PlayerActivity : AppCompatActivity() {
                 val mediaItem = MediaItem.fromUri(getString(R.string.media_url_mp3))
                 exoPlayer.setMediaItem(mediaItem)
             }
+    }
+
+    /**
+     * Android API level 24 and higher supports multiple windows. As your app can be visible,
+     * but not active in split window mode, you need to initialize the player in onStart.
+     */
+    override fun onStart() {
+        super.onStart()
+        if (Util.SDK_INT >= 24) {
+            initializePlayer()
+        }
+    }
+
+    /**
+     * Android API levels lower than 24 require you to wait as long as possible until
+     * you grab resources, so you wait until onResume before initializing the player.
+     */
+    override fun onResume() {
+        super.onResume()
+        hideSystemUi()
+        if ((Util.SDK_INT < 24 || player == null)) {
+            initializePlayer()
+        }
+    }
+
+    /**
+     * Method for enabling full screen
+     */
+    @SuppressLint("InlinedApi")
+    private fun hideSystemUi() {
+        viewBinding.videoView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LOW_PROFILE
+                or View.SYSTEM_UI_FLAG_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
     }
 }
