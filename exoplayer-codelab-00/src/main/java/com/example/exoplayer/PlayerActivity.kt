@@ -30,6 +30,11 @@ import com.google.android.exoplayer2.util.Util
 class PlayerActivity : AppCompatActivity() {
 
     private var player: SimpleExoPlayer? = null
+
+    /**
+     * These states(fields) allows you to resume playback from where the user left off.
+     * All you need to do is supply these states information when you initialize your player.
+     */
     private var playWhenReady = true
     private var currentWindow = 0
     private var playbackPosition = 0L
@@ -41,17 +46,6 @@ class PlayerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(viewBinding.root)
-    }
-
-    private fun initializePlayer() {
-        player = SimpleExoPlayer.Builder(this)
-            .build()
-            .also { exoPlayer ->
-                viewBinding.videoView.player = exoPlayer
-                // Add media item(mp3) from remote source to the player
-                val mediaItem = MediaItem.fromUri(getString(R.string.media_url_mp3))
-                exoPlayer.setMediaItem(mediaItem)
-            }
     }
 
     /**
@@ -113,6 +107,34 @@ class PlayerActivity : AppCompatActivity() {
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
     }
 
+    private fun initializePlayer() {
+        player = SimpleExoPlayer.Builder(this)
+            .build()
+            .also { exoPlayer ->
+                viewBinding.videoView.player = exoPlayer
+                // Add media item(mp3) from remote source to the player
+                val mediaItem = MediaItem.fromUri(getString(R.string.media_url_mp3))
+                exoPlayer.setMediaItem(mediaItem)
+
+                /**
+                 * *   Supply the states to begin from where the user stopped
+                 *
+                 ***  playWhenReady tells the player whether to start playing as soon as
+                 *     all resources for playback have been acquired. Because playWhenReady is
+                 *     initially true, playback starts automatically the first time the app is run.
+                 *
+                 ***  seekTo tells the player to seek to a certain position within a specific window.
+                 *    Both currentWindow and playbackPosition are initialized to zero so that
+                 *    playback starts from the very start the first time the app is run.
+                 *
+                 ***  prepare tells the player to acquire all the resources required for playback.
+                 */
+                exoPlayer.playWhenReady = playWhenReady
+                exoPlayer.seekTo(currentWindow, playbackPosition)
+                exoPlayer.prepare()
+            }
+    }
+
     private fun releasePlayer() {
         player?.run {
             // Current playback position using currentPosition
@@ -120,7 +142,7 @@ class PlayerActivity : AppCompatActivity() {
             // Current window index using currentWindowIndex
             currentWindow = this.currentWindowIndex
             // Play/pause state using playWhenReady
-            playWhenReady = this.playWhenReady
+            this@PlayerActivity.playWhenReady = this.playWhenReady
             release()   // Release the player when it's no longer needed.
         }
         player = null
